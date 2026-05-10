@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Права доступа | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Администратор</p>
+        <h1>Роли и права доступа</h1>
+        <p>Выберите роль, а система автоматически назначит нужные группы и разрешения.</p>
+    </div>
+</section>
+
+<section class="role-cards">
+    <article class="role-card">
+        <strong>Администратор</strong>
+        <p>Управляет пользователями, группами, журналами, расписанием и оценками.</p>
+    </article>
+    <article class="role-card">
+        <strong>Преподаватель</strong>
+        <p>Ведет свои журналы, занятия, посещаемость, оценки и видит свое расписание.</p>
+    </article>
+    <article class="role-card">
+        <strong>Студент</strong>
+        <p>Просматривает личные результаты, зачетную книжку и расписание своей группы.</p>
+    </article>
+</section>
+
+<div class="table-wrap">
+    <table class="journal-table">
+        <thead>
+            <tr>
+                <th>Пользователь</th>
+                <th>Логин</th>
+                <th>Текущая роль</th>
+                <th>Новая роль</th>
+                <th>Группы Django</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td>
+                        <div class="student-cell">
+                            {% include "attendance/components/avatar.html" with profile=profile size="small" %}
+                            <div>
+                                <strong>{{ profile.display_name }}</strong>
+                                <small>{{ profile.phone|default:"Телефон не указан" }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ profile.user.username }}</td>
+                    <td><span class="status-pill">{{ profile.get_role_display }}</span></td>
+                    <td>
+                        <form method="post" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                            <select class="field" name="role">
+                                {% for value, label in role_choices %}
+                                    <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="button primary" type="submit">Сохранить</button>
+                        </form>
+                    </td>
+                    <td>
+                        {% for group in profile.user.groups.all %}
+                            <span class="status-pill">{{ group.name }}</span>
+                        {% empty %}
+                            <span class="muted">Групп нет</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">Пользователей пока нет.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

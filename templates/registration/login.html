@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Вход | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div class="auth-visual">
+        <img src="{% static 'img/login-campus.svg' %}" alt="Учебный корпус">
+    </div>
+
+    <div class="auth-panel">
+        <div class="auth-brand">
+            <img src="{% static 'img/logo.svg' %}" alt="МГУТУ">
+            <div>
+                <p class="eyebrow">Информационная система</p>
+                <h1>Вход в журнал</h1>
+            </div>
+        </div>
+
+        <form method="post" class="form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="message error">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <label>
+                Логин
+                {{ form.username }}
+            </label>
+            <label>
+                Пароль
+                {{ form.password }}
+            </label>
+            <button class="button primary" type="submit">Войти</button>
+        </form>
+
+        <div class="login-hint">
+            <strong>Демо-доступ</strong>
+            <span>teacher1 / teacher12345</span>
+            <span>student1 / student12345</span>
+        </div>
+    </div>
+</section>
+{% endblock %}

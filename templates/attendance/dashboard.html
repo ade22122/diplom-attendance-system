@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="profile-hero portal-hero">
+    <div class="hero-copy">
+        {% include "attendance/components/avatar.html" with profile=profile size="large" %}
+        <div>
+            <p class="eyebrow">{{ profile.get_role_display }}</p>
+            <h1>{{ profile.display_name }}</h1>
+            {% if profile.role == "admin" or user.is_superuser %}
+                <p>Центр управления учебным процессом: пользователи, расписание, журналы и права доступа.</p>
+            {% elif profile.role == "teacher" %}
+                <p>Рабочее место преподавателя с журналами, расписанием и быстрым доступом к занятиям.</p>
+            {% else %}
+                <p>Твоя учебная панель: расписание, результаты, карточки для повторения и недельный фокус.</p>
+            {% endif %}
+            <div class="hero-actions">
+                <a class="button primary" href="{% url 'schedule' %}">Расписание</a>
+                {% if profile.role == "student" %}
+                    <a class="button" href="{% url 'record_book' %}">Зачетная книжка</a>
+                {% elif profile.role == "admin" or user.is_superuser %}
+                    <a class="button" href="{% url 'admin_schedule_manage' %}">Планировщик</a>
+                {% else %}
+                    <a class="button" href="{% url 'teacher_courses' %}">Журналы</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="hero-media" aria-hidden="true">
+        <img src="{% static 'img/login-campus.svg' %}" alt="">
+        <div class="hero-badge">
+            <strong>{% if profile.role == "student" %}Study Hub{% elif profile.role == "teacher" %}Faculty Desk{% else %}Admin Core{% endif %}</strong>
+            <span>2025/2026</span>
+        </div>
+    </div>
+</section>
+
+{% if profile.role == "admin" or user.is_superuser %}
+    <section class="stats-grid">
+        <div class="stat"><span>Пользователи</span><strong>{{ users_count }}</strong></div>
+        <div class="stat"><span>Студенты</span><strong>{{ students_count }}</strong></div>
+        <div class="stat"><span>Преподаватели</span><strong>{{ teachers_count }}</strong></div>
+        <div class="stat"><span>Группы</span><strong>{{ groups_count }}</strong></div>
+        <div class="stat"><span>Дисциплины</span><strong>{{ subjects_count }}</strong></div>
+        <div class="stat"><span>Журналы</span><strong>{{ courses_count }}</strong></div>
+        <div class="stat"><span>Пар в расписании</span><strong>{{ schedule_count }}</strong></div>
+    </section>
+
+    <section class="admin-actions">
+        <a class="action-card" href="{% url 'admin:auth_user_changelist' %}">
+            <span class="action-icon users-icon"></span>
+            <strong>Пользователи</strong>
+            <small>Создание учетных записей, ролей и аватаров</small>
+        </a>
+        <a class="action-card" href="{% url 'admin:attendance_studygroup_changelist' %}">
+            <span class="action-icon groups-icon"></span>
+            <strong>Группы</strong>
+            <small>Состав групп, специальность и куратор</small>
+        </a>
+        <a class="action-card" href="{% url 'admin:attendance_subject_changelist' %}">
+            <span class="action-icon subjects-icon"></span>
+            <strong>Дисциплины</strong>
+            <small>Учебные предметы и коды дисциплин</small>
+        </a>
+        <a class="action-card" href="{% url 'admin:attendance_course_changelist' %}">
+            <span class="action-icon journals-icon"></span>
+            <strong>Журналы</strong>
+            <small>Назначение преподавателей и семестров</small>
+        </a>
+        <a class="action-card" href="{% url 'admin_schedule_manage' %}">
+            <span class="action-icon schedule-icon"></span>
+            <strong>Расписание</strong>
+            <small>Составление недельной сетки занятий</small>
+        </a>
+        <a class="action-card" href="{% url 'admin_roles' %}">
+            <span class="action-icon rights-icon"></span>
+            <strong>Права доступа</strong>
+            <small>Роли пользователей и автоматические разрешения</small>
+        </a>
+    </section>
+
+    <section class="split-layout">
+        <div>
+            <div class="section-title">
+                <h2>Последние занятия</h2>
+                <a href="{% url 'teacher_courses' %}">Все журналы</a>
+            </div>
+            <div class="list">
+                {% for lesson in recent_lessons %}
+                    <article class="item lesson-item">
+                        <div class="date-chip">
+                            <strong>{{ lesson.date|date:"d" }}</strong>
+                            <span>{{ lesson.date|date:"M" }}</span>
+                        </div>
+                        <div>
+                            <h3>{{ lesson.topic }}</h3>
+                            <p>{{ lesson.course.subject.name }} · {{ lesson.course.group.name }}</p>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="empty">Занятия пока не добавлены.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="side-panel">
+            <h2>Новые профили</h2>
+            <div class="people-list">
+                {% for item in recent_users %}
+                    <div class="person-row">
+                        {% include "attendance/components/avatar.html" with profile=item size="small" %}
+                        <div>
+                            <strong>{{ item.display_name }}</strong>
+                            <small>{{ item.get_role_display }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="empty">Профилей пока нет.</p>
+                {% endfor %}
+            </div>
+        </aside>
+    </section>
+{% elif profile.role == "teacher" %}
+    <section class="stats-grid">
+        <div class="stat"><span>Журналы</span><strong>{{ courses|length }}</strong></div>
+        <div class="stat"><span>Студенты</span><strong>{{ teacher_students_count }}</strong></div>
+        <div class="stat"><span>Ближайшая работа</span><strong>{{ recent_lessons|length }}</strong></div>
+        <div class="stat"><span>Расписание</span><strong><a href="{% url 'schedule' %}">→</a></strong></div>
+    </section>
+
+    <section class="split-layout">
+        <div>
+            <div class="section-title">
+                <h2>Мои журналы</h2>
+                <a href="{% url 'teacher_courses' %}">Открыть список</a>
+            </div>
+            <div class="course-grid">
+                {% for course in courses %}
+                    <article class="course-card">
+                        <div class="course-card-head">
+                            <span class="subject-mark">{{ course.subject.name|slice:":2" }}</span>
+                            <span>{{ course.academic_year }}</span>
+                        </div>
+                        <h3>{{ course.subject.name }}</h3>
+                        <p>{{ course.group.name }} · {{ course.semester }} семестр</p>
+                        <div class="mini-stats">
+                            <span>{{ course.students_total }} студентов</span>
+                            <span>{{ course.lessons_total }} занятий</span>
+                            <span>{{ course.grades_total }} оценок</span>
+                        </div>
+                        <a class="button primary" href="{% url 'teacher_course_detail' course.id %}">Открыть журнал</a>
+                    </article>
+                {% empty %}
+                    <p class="empty">Журналы еще не назначены.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="side-panel">
+            <h2>Последние занятия</h2>
+            <div class="compact-list">
+                {% for lesson in recent_lessons %}
+                    <a class="compact-row link-row" href="{% url 'lesson_journal' lesson.id %}">
+                        <span>{{ lesson.topic }}</span>
+                        <small>{{ lesson.date|date:"d.m" }}</small>
+                    </a>
+                {% empty %}
+                    <p class="empty">Занятий пока нет.</p>
+                {% endfor %}
+            </div>
+        </aside>
+    </section>
+{% else %}
+    {% if student_card %}
+        <section class="stats-grid">
+            <div class="stat"><span>Группа</span><strong>{{ student_card.group.name }}</strong></div>
+            <div class="stat"><span>Посещаемость</span><strong>{{ attendance_percent }}%</strong></div>
+            <div class="stat"><span>Отмечено занятий</span><strong>{{ attendance_total }}</strong></div>
+            <div class="stat"><span>Оценки</span><strong>{{ student_grades_count }}</strong></div>
+            <div class="stat"><span>Расписание</span><strong><a href="{% url 'schedule' %}">→</a></strong></div>
+        </section>
+
+        <section class="student-studio" data-tabs>
+            <div class="studio-head">
+                <div>
+                    <p class="eyebrow">Учебная студия</p>
+                    <h2>Интерактивы студента</h2>
+                </div>
+                <div class="studio-tabs" role="tablist" aria-label="Учебные инструменты">
+                    <button class="studio-tab active" type="button" data-tab-target="today">Сегодня</button>
+                    <button class="studio-tab" type="button" data-tab-target="cards">Флеш-карточки</button>
+                    <button class="studio-tab" type="button" data-tab-target="map">Карта недели</button>
+                </div>
+            </div>
+
+            <div class="studio-panel active" data-tab-panel="today">
+                <div class="studio-grid">
+                    <article class="studio-card">
+                        <h3>Ближайшие пары</h3>
+                        <div class="compact-list">
+                            {% for entry in student_schedule_preview %}
+                                <div class="compact-row">
+                                    <span>{{ entry.get_weekday_display }} · {{ entry.course.subject.name }}</span>
+                                    <small>{{ entry.start_time|time:"H:i" }} · {{ entry.room }}</small>
+                                </div>
+                            {% empty %}
+                                <p class="empty">Расписание пока не заполнено.</p>
+                            {% endfor %}
+                        </div>
+                    </article>
+
+                    <article class="studio-card">
+                        <h3>Фокус на день</h3>
+                        <div class="task-list" data-task-list="student-focus">
+                            <label><input type="checkbox" data-task-id="schedule"> Проверить расписание</label>
+                            <label><input type="checkbox" data-task-id="grades"> Посмотреть новые оценки</label>
+                            <label><input type="checkbox" data-task-id="cards"> Повторить 3 карточки</label>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="studio-panel" data-tab-panel="cards">
+                <div class="flash-grid">
+                    {% for course in courses %}
+                        <button class="flash-card" type="button" data-flip-card>
+                            <span class="flash-face front">
+                                <strong>{{ course.subject.name }}</strong>
+                                <small>Нажми, чтобы раскрыть</small>
+                            </span>
+                            <span class="flash-face back">
+                                <strong>{{ course.teacher.get_full_name|default:course.teacher.username }}</strong>
+                                <small>{{ course.lessons_total }} занятий · {{ course.grades_total }} оценок</small>
+                            </span>
+                        </button>
+                    {% empty %}
+                        <p class="empty">Карточки появятся после назначения дисциплин.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="studio-panel" data-tab-panel="map">
+                <div class="mind-map">
+                    <div class="map-node main-node">Неделя</div>
+                    <div class="map-node">Расписание</div>
+                    <div class="map-node">Посещаемость {{ attendance_percent }}%</div>
+                    <div class="map-node">Оценки {{ student_grades_count }}</div>
+                    <div class="map-node">Зачетная книжка</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="split-layout">
+            <div>
+                <div class="section-title">
+                    <h2>Мои дисциплины</h2>
+                    <span>{{ student_card.group.speciality }}</span>
+                </div>
+                <div class="course-grid">
+                    {% for course in courses %}
+                        <article class="course-card">
+                            <div class="course-card-head">
+                                <span class="subject-mark">{{ course.subject.name|slice:":2" }}</span>
+                                <span>{{ course.semester }} семестр</span>
+                            </div>
+                            <h3>{{ course.subject.name }}</h3>
+                            <p>{{ course.teacher.get_full_name|default:course.teacher.username }}</p>
+                            <div class="mini-stats">
+                                <span>{{ course.lessons_total }} занятий</span>
+                                <span>{{ course.grades_total }} оценок</span>
+                            </div>
+                            <a class="button primary" href="{% url 'student_course_detail' course.id %}">Мои результаты</a>
+                        </article>
+                    {% empty %}
+                        <p class="empty">Для группы пока нет дисциплин.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <aside class="side-panel">
+                <h2>Последние оценки</h2>
+                <div class="compact-list">
+                    {% for grade in grades %}
+                        <div class="compact-row">
+                            <span>{{ grade.course.subject.name }}</span>
+                            <strong class="grade-pill">{{ grade.get_value_display }}</strong>
+                        </div>
+                    {% empty %}
+                        <p class="empty">Оценок пока нет.</p>
+                    {% endfor %}
+                </div>
+            </aside>
+        </section>
+    {% else %}
+        <p class="empty">Карточка студента не создана. Обратитесь к администратору.</p>
+    {% endif %}
+{% endif %}
+{% endblock %}

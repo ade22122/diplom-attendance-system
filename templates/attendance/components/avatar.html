@@ -1,0 +1,12 @@
+{% load static %}
+<span class="avatar {{ size|default:'medium' }}">
+    {% if profile.avatar_url %}
+        <img src="{{ profile.avatar_url }}" alt="{{ profile.display_name }}">
+    {% elif profile.role == "admin" %}
+        <img src="{% static 'img/avatar-admin.svg' %}" alt="Администратор">
+    {% elif profile.role == "teacher" %}
+        <img src="{% static 'img/avatar-teacher.svg' %}" alt="Преподаватель">
+    {% else %}
+        <img src="{% static 'img/avatar-student.svg' %}" alt="Студент">
+    {% endif %}
+</span>

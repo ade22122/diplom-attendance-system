@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Новое занятие | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">{{ course.group.name }} · {{ course.academic_year }}</p>
+        <h1>Новое занятие</h1>
+        <p>{{ course.subject.name }}</p>
+    </div>
+</section>
+
+<section class="form-shell">
+    <form method="post" class="form narrow">
+        {% csrf_token %}
+        <label>
+            Дата
+            {{ form.date }}
+            {{ form.date.errors }}
+        </label>
+        <label>
+            Тип занятия
+            {{ form.lesson_type }}
+            {{ form.lesson_type.errors }}
+        </label>
+        <label>
+            Тема
+            {{ form.topic }}
+            {{ form.topic.errors }}
+        </label>
+        <div class="actions">
+            <button class="button primary" type="submit">Сохранить</button>
+            <a class="button" href="{% url 'teacher_course_detail' course.id %}">Назад</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

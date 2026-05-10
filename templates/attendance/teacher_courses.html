@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Журналы | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Электронные журналы</p>
+        <h1>Учебные дисциплины</h1>
+        <p>Все журналы, к которым у вас есть доступ.</p>
+    </div>
+</section>
+
+<section class="course-grid">
+    {% for course in courses %}
+        <article class="course-card">
+            <div class="course-card-head">
+                <span class="subject-mark">{{ course.subject.name|slice:":2" }}</span>
+                <span>{{ course.academic_year }}</span>
+            </div>
+            <h2>{{ course.subject.name }}</h2>
+            <p>{{ course.group.name }} · {{ course.teacher.get_full_name|default:course.teacher.username }}</p>
+            <div class="mini-stats">
+                <span>{{ course.students_total }} студентов</span>
+                <span>{{ course.lessons_total }} занятий</span>
+                <span>{{ course.grades_total }} оценок</span>
+            </div>
+            <a class="button primary" href="{% url 'teacher_course_detail' course.id %}">Открыть журнал</a>
+        </article>
+    {% empty %}
+        <p class="empty">Нет доступных журналов.</p>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Составить расписание | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Администратор</p>
+        <h1>Планировщик расписания</h1>
+        <p>Заполняйте расписание как календарь: выберите свободную ячейку, затем укажите журнал, аудиторию и тип пары.</p>
+    </div>
+    <a class="button" href="{% url 'schedule' %}">Посмотреть расписание</a>
+</section>
+
+<section class="planner-layout">
+    <div class="planner-board">
+        <div class="planner-board-head">
+            <div>
+                <h2>Неделя</h2>
+                <span>{{ entries|length }} пар в расписании</span>
+            </div>
+            <div class="planner-legend">
+                <span><i class="legend-dot lecture-dot"></i>Лекция</span>
+                <span><i class="legend-dot practice-dot"></i>Практика</span>
+                <span><i class="legend-dot lab-dot"></i>Лабораторная</span>
+            </div>
+        </div>
+
+        <div class="calendar-wrap">
+            <div class="calendar-grid admin-calendar">
+                <div class="calendar-time calendar-head-cell">Время</div>
+                {% for weekday, label in weekdays %}
+                    <div class="calendar-head-cell">{{ label }}</div>
+                {% endfor %}
+
+                {% for row in calendar_rows %}
+                    <div class="calendar-time">
+                        <strong>{{ row.start }}</strong>
+                        <span>{{ row.end }}</span>
+                    </div>
+                    {% for day in row.days %}
+                        <div class="calendar-cell">
+                            {% for entry in day.entries %}
+                                <article class="calendar-card type-{{ entry.lesson_type }}">
+                                    <div class="calendar-card-top">
+                                        <strong>{{ entry.course.subject.name }}</strong>
+                                        <span>{{ entry.course.group.name }}</span>
+                                    </div>
+                                    <p>{{ entry.course.teacher.get_full_name|default:entry.course.teacher.username }}</p>
+                                    <div class="mini-stats">
+                                        <span>{{ entry.room }}{% if entry.building %}, {{ entry.building }}{% endif %}</span>
+                                        <span>{{ entry.get_week_type_display }}</span>
+                                    </div>
+                                    <div class="row-actions compact-actions">
+                                        <a class="small-link" href="{% url 'admin_schedule_manage' %}?edit={{ entry.id }}">Изменить</a>
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                            <button class="small-link danger-link" type="submit" name="action" value="delete">Удалить</button>
+                                        </form>
+                                    </div>
+                                </article>
+                            {% empty %}
+                                <a class="empty-slot" href="{% url 'admin_schedule_manage' %}?weekday={{ day.weekday }}&start={{ row.start }}&end={{ row.end }}">
+                                    <span>+</span>
+                                    Добавить
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <aside class="planner-form-panel">
+        <div class="form-shell">
+            <h2>{% if edit_entry %}Изменить пару{% else %}Добавить пару{% endif %}</h2>
+            <form method="post" class="form">
+                {% csrf_token %}
+                {% if edit_entry %}
+                    <input type="hidden" name="entry_id" value="{{ edit_entry.id }}">
+                {% endif %}
+                {{ form.non_field_errors }}
+                <label>Журнал {{ form.course }} {{ form.course.errors }}</label>
+                <div class="form-grid">
+                    <label>День недели {{ form.weekday }} {{ form.weekday.errors }}</label>
+                    <label>Неделя {{ form.week_type }} {{ form.week_type.errors }}</label>
+                    <label>Начало {{ form.start_time }} {{ form.start_time.errors }}</label>
+                    <label>Окончание {{ form.end_time }} {{ form.end_time.errors }}</label>
+                    <label>Тип занятия {{ form.lesson_type }} {{ form.lesson_type.errors }}</label>
+                    <label>Аудитория {{ form.room }} {{ form.room.errors }}</label>
+                </div>
+                <label>Корпус {{ form.building }} {{ form.building.errors }}</label>
+                <label>Комментарий {{ form.comment }} {{ form.comment.errors }}</label>
+                <label class="check-row">{{ form.is_active }} Активно {{ form.is_active.errors }}</label>
+                <div class="actions">
+                    <button class="button primary" type="submit" name="action" value="save">Сохранить</button>
+                    {% if edit_entry %}
+                        <a class="button" href="{% url 'admin_schedule_manage' %}">Отмена</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <div class="side-panel planner-help">
+            <h2>Как пользоваться</h2>
+            <div class="compact-list">
+                <div class="compact-row"><span>1. Выберите ячейку</span><small>день и время подставятся автоматически</small></div>
+                <div class="compact-row"><span>2. Выберите журнал</span><small>группа и преподаватель подтянутся сами</small></div>
+                <div class="compact-row"><span>3. Укажите аудиторию</span><small>и сохраните пару</small></div>
+            </div>
+        </div>
+    </aside>
+</section>
+{% endblock %}

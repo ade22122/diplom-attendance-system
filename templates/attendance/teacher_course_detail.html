@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.subject.name }} | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">{{ course.group.name }} · {{ course.academic_year }}</p>
+        <h1>{{ course.subject.name }}</h1>
+        <p>{{ course.teacher.get_full_name|default:course.teacher.username }} · {{ course.semester }} семестр</p>
+    </div>
+    <a class="button primary" href="{% url 'lesson_create' course.id %}">Добавить занятие</a>
+</section>
+
+<section class="stats-grid">
+    <div class="stat"><span>Студенты</span><strong>{{ students_count }}</strong></div>
+    <div class="stat"><span>Занятия</span><strong>{{ lessons|length }}</strong></div>
+    <div class="stat"><span>Группа</span><strong>{{ course.group.name }}</strong></div>
+</section>
+
+<section class="split-layout">
+    <div>
+        <div class="section-title">
+            <h2>Занятия</h2>
+            <span>Посещаемость и оценки заполняются внутри занятия</span>
+        </div>
+        <div class="list">
+            {% for lesson in lessons %}
+                <article class="item lesson-item">
+                    <div class="date-chip">
+                        <strong>{{ lesson.date|date:"d" }}</strong>
+                        <span>{{ lesson.date|date:"M" }}</span>
+                    </div>
+                    <div>
+                        <h3>{{ lesson.topic }}</h3>
+                        <p>{{ lesson.get_lesson_type_display }} · {{ lesson.attendance_marked }} отметок · {{ lesson.grades_marked }} оценок</p>
+                    </div>
+                    <a class="button" href="{% url 'lesson_journal' lesson.id %}">Заполнить</a>
+                </article>
+            {% empty %}
+                <p class="empty">Занятий пока нет.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <aside class="side-panel">
+        <h2>Студенты группы</h2>
+        <div class="people-list">
+            {% for student in students %}
+                <div class="person-row">
+                    {% include "attendance/components/avatar.html" with profile=student.user.profile size="small" %}
+                    <div>
+                        <strong>{{ student.user.get_full_name|default:student.user.username }}</strong>
+                        <small>Зачетная книжка: {{ student.record_book_number }}</small>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="empty">В группе пока нет студентов.</p>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+{% endblock %}

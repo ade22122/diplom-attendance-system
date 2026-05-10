@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.venv/
+venv/
+staticfiles/
+.pytest_cache/
+.coverage
+.idea/
+.vscode/
+*.log
+.DS_Store
+desktop-csharp/bin/
+desktop-csharp/obj/

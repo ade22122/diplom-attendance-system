@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-label="Campus illustration">
+  <rect width="720" height="420" rx="28" fill="#e7f2f0"/>
+  <path d="M70 330h580" stroke="#c9d8df" stroke-width="10" stroke-linecap="round"/>
+  <path d="M126 162l234-98 234 98" fill="#0f5f6b"/>
+  <path d="M162 162h396v168H162z" fill="#fff"/>
+  <path d="M192 190h64v140h-64zM290 190h64v140h-64zM388 190h64v140h-64zM486 190h42v140h-42z" fill="#dbe8ef"/>
+  <path d="M168 154h384v28H168z" fill="#c45a35"/>
+  <path d="M132 330h456" stroke="#0f5f6b" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="566" cy="78" r="36" fill="#f1c36a"/>
+  <path d="M90 280c22-28 49-42 82-42 31 0 55 13 72 39" fill="none" stroke="#7da39b" stroke-width="12" stroke-linecap="round"/>
+</svg>

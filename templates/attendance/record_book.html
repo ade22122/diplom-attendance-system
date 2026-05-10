@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Зачетная книжка | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">Успеваемость</p>
+        <h1>Зачетная книжка</h1>
+        {% if selected_student %}
+            <p>{{ selected_student.user.get_full_name|default:selected_student.user.username }} · {{ selected_student.group.name }} · № {{ selected_student.record_book_number }}</p>
+        {% else %}
+            <p>Выберите студента, чтобы посмотреть результаты.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if profile.role == "admin" or user.is_superuser %}
+    <form class="filter-bar" method="get">
+        <label>
+            Студент
+            <select class="field" name="student">
+                {% for student in students %}
+                    <option value="{{ student.id }}" {% if selected_student and student.id == selected_student.id %}selected{% endif %}>
+                        {{ student.group.name }} · {{ student.user.get_full_name|default:student.user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="button primary" type="submit">Показать</button>
+    </form>
+{% endif %}
+
+{% if selected_student %}
+    <section class="profile-hero compact-hero">
+        {% include "attendance/components/avatar.html" with profile=selected_student.user.profile size="large" %}
+        <div>
+            <p class="eyebrow">Студент</p>
+            <h2>{{ selected_student.user.get_full_name|default:selected_student.user.username }}</h2>
+            <p>{{ selected_student.group.speciality }}</p>
+        </div>
+    </section>
+
+    <div class="table-wrap">
+        <table class="journal-table">
+            <thead>
+                <tr>
+                    <th>Дисциплина</th>
+                    <th>Преподаватель</th>
+                    <th>Посещаемость</th>
+                    <th>Средний балл</th>
+                    <th>Оценки</th>
+                    <th>Итог</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td><strong>{{ row.course.subject.name }}</strong></td>
+                        <td>{{ row.course.teacher.get_full_name|default:row.course.teacher.username }}</td>
+                        <td><span class="status-pill status-present">{{ row.attendance_percent }}%</span></td>
+                        <td>
+                            {% if row.average %}
+                                <span class="grade-pill">{{ row.average }}</span>
+                            {% else %}
+                                <span class="muted">Нет</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for grade in row.grades %}
+                                <span class="grade-pill">{{ grade.get_value_display }}</span>
+                            {% empty %}
+                                <span class="muted">Нет оценок</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if row.final_grade %}
+                                <span class="grade-pill">{{ row.final_grade.get_value_display }}</span>
+                            {% else %}
+                                <span class="muted">Не выставлен</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">Для группы пока нет дисциплин.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

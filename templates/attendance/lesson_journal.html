@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал занятия | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">{{ course.group.name }} · {{ lesson.date|date:"d.m.Y" }}</p>
+        <h1>{{ lesson.topic }}</h1>
+        <p>{{ course.subject.name }} · {{ lesson.get_lesson_type_display }}</p>
+    </div>
+    <a class="button" href="{% url 'teacher_course_detail' course.id %}">К журналу</a>
+</section>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="table-wrap">
+        <table class="journal-table journal-table-comfort">
+            <thead>
+                <tr>
+                    <th>Студент</th>
+                    <th>Посещаемость</th>
+                    <th>Комментарий</th>
+                    <th>Оценка</th>
+                    <th>Комментарий к оценке</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td>
+                            <div class="student-cell">
+                                {% include "attendance/components/avatar.html" with profile=row.student.user.profile size="small" %}
+                                <div>
+                                    <strong>{{ row.student.user.get_full_name|default:row.student.user.username }}</strong>
+                                    <small>{{ row.student.record_book_number }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <select class="field" name="attendance_{{ row.student.id }}">
+                                {% for value, label in attendance_statuses %}
+                                    <option value="{{ value }}" {% if row.attendance.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input class="field" name="comment_{{ row.student.id }}" value="{{ row.attendance.comment|default:'' }}" placeholder="Например: справка">
+                        </td>
+                        <td>
+                            <select class="field compact-field" name="grade_{{ row.student.id }}">
+                                <option value="">Без оценки</option>
+                                {% for value, label in grade_values %}
+                                    <option value="{{ value }}" {% if row.grade.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input class="field" name="grade_comment_{{ row.student.id }}" value="{{ row.grade.comment|default:'' }}" placeholder="Комментарий">
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">В группе нет студентов.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="actions sticky-actions">
+        <button class="button primary" type="submit">Сохранить журнал</button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Расписание | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head schedule-hero">
+    <div>
+        <p class="eyebrow">Недельная сетка</p>
+        <h1>{{ page_title }}</h1>
+        <p>Календарный вид с парами, аудиториями и преподавателями. Так проще увидеть загруженность недели.</p>
+    </div>
+</section>
+
+{% if profile.role == "admin" or user.is_superuser %}
+    <form class="filter-bar elevated-filter" method="get">
+        <label>
+            Группа
+            <select class="field" name="group">
+                <option value="">Все группы</option>
+                {% for group in groups %}
+                    <option value="{{ group.id }}" {% if group.id|stringformat:"s" == selected_group_id %}selected{% endif %}>{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Преподаватель
+            <select class="field" name="teacher">
+                <option value="">Все преподаватели</option>
+                {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}" {% if teacher.id|stringformat:"s" == selected_teacher_id %}selected{% endif %}>
+                        {{ teacher.get_full_name|default:teacher.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="button primary" type="submit">Показать</button>
+        <a class="button" href="{% url 'admin_schedule_manage' %}">Редактировать</a>
+    </form>
+{% endif %}
+
+<section class="planner-board public-board">
+    <div class="planner-board-head">
+        <div>
+            <h2>Учебная неделя</h2>
+            <span>Пары сгруппированы по времени и дням</span>
+        </div>
+        <div class="planner-legend">
+            <span><i class="legend-dot lecture-dot"></i>Лекция</span>
+            <span><i class="legend-dot practice-dot"></i>Практика</span>
+            <span><i class="legend-dot lab-dot"></i>Лабораторная</span>
+        </div>
+    </div>
+
+    <div class="calendar-wrap">
+        <div class="calendar-grid public-calendar">
+            <div class="calendar-time calendar-head-cell">Время</div>
+            {% for weekday, label in weekdays %}
+                <div class="calendar-head-cell">{{ label }}</div>
+            {% endfor %}
+
+            {% for row in calendar_rows %}
+                <div class="calendar-time">
+                    <strong>{{ row.start }}</strong>
+                    <span>{{ row.end }}</span>
+                </div>
+                {% for day in row.days %}
+                    <div class="calendar-cell">
+                        {% for entry in day.entries %}
+                            <article class="calendar-card type-{{ entry.lesson_type }}">
+                                <div class="calendar-card-top">
+                                    <strong>{{ entry.course.subject.name }}</strong>
+                                    <span>{{ entry.course.group.name }}</span>
+                                </div>
+                                <p>{{ entry.course.teacher.get_full_name|default:entry.course.teacher.username }}</p>
+                                <div class="mini-stats">
+                                    <span>{{ entry.room }}{% if entry.building %}, {{ entry.building }}{% endif %}</span>
+                                    <span>{{ entry.get_lesson_type_display }}</span>
+                                </div>
+                            </article>
+                        {% empty %}
+                            <div class="free-slot">Свободно</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
