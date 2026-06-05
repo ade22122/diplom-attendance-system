@@ -31,6 +31,12 @@ Render Postgres лучше не выбирать для бесплатного �
 postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require
 ```
 
+Если вместо `DATABASE_URL` используете отдельные переменные `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, для Supabase/Neon добавьте:
+
+```text
+POSTGRES_SSLMODE=require
+```
+
 ### Вариант B: Supabase
 
 1. Откройте https://supabase.com/

@@ -102,6 +102,10 @@ elif os.getenv("DB_ENGINE", "postgres").lower() == "sqlite":
         }
     }
 else:
+    database_options = {}
+    if os.getenv("POSTGRES_SSLMODE"):
+        database_options["sslmode"] = os.getenv("POSTGRES_SSLMODE")
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -111,6 +115,7 @@ else:
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.getenv("POSTGRES_PORT", "5432"),
             "CONN_MAX_AGE": int(os.getenv("POSTGRES_CONN_MAX_AGE", "60")),
+            "OPTIONS": database_options,
         }
     }
 
