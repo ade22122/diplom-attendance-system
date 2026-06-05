@@ -65,7 +65,7 @@
             {% if form.avatar.errors %}<span class="field-error">{{ form.avatar.errors|striptags }}</span>{% endif %}
         </label>
 
-        {% if profile.avatar_image or profile.avatar or profile.avatar_url %}
+        {% if profile.avatar_src %}
             <label class="check-row">
                 {{ form.clear_avatar }}
                 <span>{{ form.clear_avatar.label }}</span>
