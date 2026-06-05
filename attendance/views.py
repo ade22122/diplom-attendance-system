@@ -4,6 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -126,6 +127,20 @@ def profile_edit(request):
         form = ProfileEditForm(user=request.user, profile=profile)
 
     return render(request, "attendance/profile_form.html", {"form": form, "profile": profile})
+
+
+@login_required
+def profile_avatar(request, profile_id):
+    profile = get_object_or_404(Profile, pk=profile_id)
+    if not profile.avatar_image:
+        raise Http404("Avatar not found.")
+
+    response = HttpResponse(
+        bytes(profile.avatar_image),
+        content_type=profile.avatar_content_type or "application/octet-stream",
+    )
+    response["Cache-Control"] = "private, max-age=86400"
+    return response
 
 
 @login_required

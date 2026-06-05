@@ -90,7 +90,7 @@ class RegistrationForm(UserCreationForm):
             profile = user.profile
             profile.role = Profile.Role.STUDENT
             if self.cleaned_data.get("avatar"):
-                profile.avatar = self.cleaned_data["avatar"]
+                profile.set_avatar_file(self.cleaned_data["avatar"])
             profile.save()
 
             group = self.cleaned_data.get("group")
@@ -174,17 +174,21 @@ class ProfileEditForm(forms.Form):
 
         avatar = self.cleaned_data.get("avatar")
         if self.cleaned_data.get("clear_avatar"):
-            if self.profile.avatar:
-                self.profile.avatar.delete(save=False)
-            self.profile.avatar = ""
-            self.profile.avatar_url = ""
+            self.profile.clear_avatar_file()
         if avatar:
-            if self.profile.avatar:
-                self.profile.avatar.delete(save=False)
-            self.profile.avatar = avatar
-            self.profile.avatar_url = ""
+            self.profile.set_avatar_file(avatar)
 
-        self.profile.save(update_fields=["patronymic", "phone", "avatar", "avatar_url"])
+        self.profile.save(
+            update_fields=[
+                "patronymic",
+                "phone",
+                "avatar",
+                "avatar_url",
+                "avatar_image",
+                "avatar_content_type",
+                "avatar_updated_at",
+            ]
+        )
         return self.profile
 
 

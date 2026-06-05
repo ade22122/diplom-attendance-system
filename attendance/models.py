@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -22,6 +24,9 @@ class Profile(models.Model):
     phone = models.CharField("Телефон", max_length=30, blank=True)
     avatar = models.ImageField("Файл аватара", upload_to="avatars/", blank=True)
     avatar_url = models.URLField("Ссылка на аватар", blank=True)
+    avatar_image = models.BinaryField(blank=True, null=True, editable=False)
+    avatar_content_type = models.CharField(max_length=80, blank=True)
+    avatar_updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Профиль пользователя"
@@ -44,9 +49,31 @@ class Profile(models.Model):
 
     @property
     def avatar_src(self):
-        if self.avatar:
+        if self.avatar_image:
+            version = int(self.avatar_updated_at.timestamp()) if self.avatar_updated_at else self.pk
+            return f"{reverse('profile_avatar', args=[self.pk])}?v={version}"
+        if self.avatar and settings.DEBUG:
             return self.avatar.url
         return self.avatar_url
+
+    def set_avatar_file(self, avatar_file):
+        if self.avatar:
+            self.avatar.delete(save=False)
+        avatar_file.seek(0)
+        self.avatar_image = avatar_file.read()
+        self.avatar_content_type = getattr(avatar_file, "content_type", "") or "application/octet-stream"
+        self.avatar_updated_at = timezone.now()
+        self.avatar = ""
+        self.avatar_url = ""
+
+    def clear_avatar_file(self):
+        if self.avatar:
+            self.avatar.delete(save=False)
+        self.avatar = ""
+        self.avatar_url = ""
+        self.avatar_image = None
+        self.avatar_content_type = ""
+        self.avatar_updated_at = None
 
 
 class StudyGroup(models.Model):
