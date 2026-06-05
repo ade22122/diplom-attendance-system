@@ -78,9 +78,10 @@ python manage.py runserver
 
 ## Публикация в интернете
 
-Проект подготовлен для деплоя на Render:
+Проект подготовлен для деплоя на бесплатной связке Render + внешний PostgreSQL:
 
-- `render.yaml` создает Web Service и PostgreSQL;
+- `render.yaml` создает Web Service;
+- `DATABASE_URL` можно взять из Neon Free или Supabase Free;
 - `build.sh` устанавливает зависимости, собирает статику и применяет миграции;
 - Django читает production-базу из `DATABASE_URL`;
 - статические файлы обслуживаются через WhiteNoise;
