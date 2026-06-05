@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Электронный журнал{% endblock %}</title>
-    <link rel="icon" href="{% static 'img/logo.svg' %}">
+    <link rel="icon" href="{% static 'img/mgutu-logo.png' %}">
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body class="{% if user.is_authenticated %}role-{{ user.profile.role }}{% endif %}">
     <header class="topbar">
         <a class="brand" href="{% url 'dashboard' %}">
-            <img src="{% static 'img/logo.svg' %}" alt="МГУТУ">
+            <img src="{% static 'img/mgutu-logo.png' %}" alt="МГУТУ">
             <span>
                 <strong>МГУТУ</strong>
                 <small>Электронный журнал</small>
@@ -35,10 +35,10 @@
                 {% if user.is_staff %}
                     <a href="{% url 'admin:index' %}">Админ-панель</a>
                 {% endif %}
-                <div class="topbar-user">
+                <a class="topbar-user" href="{% url 'profile_edit' %}">
                     {% include "attendance/components/avatar.html" with profile=user.profile size="small" %}
                     <span>{{ user.get_full_name|default:user.username }}</span>
-                </div>
+                </a>
                 <form class="logout-form" action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
                     <button class="link-button" type="submit">Выйти</button>

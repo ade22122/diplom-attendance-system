@@ -1,9 +1,22 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from datetime import time
+from io import BytesIO
+import shutil
+import tempfile
 
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+from PIL import Image
 from .models import Course, Lesson, Profile, ScheduleEntry, StudentCard, StudyGroup, Subject
+
+
+def make_png():
+    image = Image.new("RGB", (1, 1), color=(255, 255, 255))
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 class AttendanceModelTests(TestCase):
@@ -152,3 +165,70 @@ class DashboardViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Слишком много попыток входа")
+
+
+class RegistrationAndProfileTests(TestCase):
+    def setUp(self):
+        self.media_root = tempfile.mkdtemp()
+        self.settings_override = override_settings(MEDIA_ROOT=self.media_root)
+        self.settings_override.enable()
+        self.group = StudyGroup.objects.create(
+            name="ПИ-24",
+            speciality="Прикладная информатика",
+            admission_year=2024,
+        )
+
+    def tearDown(self):
+        self.settings_override.disable()
+        shutil.rmtree(self.media_root, ignore_errors=True)
+
+    def test_registration_creates_student_account(self):
+        response = self.client.post(
+            "/register/",
+            {
+                "username": "newstudent",
+                "first_name": "Павел",
+                "last_name": "Иванов",
+                "email": "newstudent@example.local",
+                "group": self.group.id,
+                "password1": "StrongPass12345",
+                "password2": "StrongPass12345",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        User = get_user_model()
+        user = User.objects.get(username="newstudent")
+        self.assertEqual(user.profile.role, Profile.Role.STUDENT)
+        self.assertFalse(user.is_staff)
+        self.assertTrue(StudentCard.objects.filter(user=user, group=self.group).exists())
+
+    def test_user_can_upload_avatar_in_profile(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="avatarstudent",
+            password="password12345",
+            first_name="Иван",
+            last_name="Петров",
+        )
+        self.client.login(username="avatarstudent", password="password12345")
+        avatar = SimpleUploadedFile("avatar.png", make_png(), content_type="image/png")
+
+        response = self.client.post(
+            "/profile/",
+            {
+                "first_name": "Иван",
+                "last_name": "Петров",
+                "email": "avatar@example.local",
+                "patronymic": "Иванович",
+                "phone": "+7 999 000-00-00",
+                "avatar": avatar,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Профиль обновлен")
+        user.profile.refresh_from_db()
+        self.assertTrue(user.profile.avatar.name.startswith("avatars/"))
+        self.assertEqual(user.profile.phone, "+7 999 000-00-00")

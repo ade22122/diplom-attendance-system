@@ -142,12 +142,7 @@ public partial class MainWindow : Window
 
     private void SetRoleAvatar(UserSession session)
     {
-        var asset = session.IsAdmin
-            ? "avatar-admin.png"
-            : session.IsTeacher
-                ? "avatar-teacher.png"
-                : "avatar-student.png";
-        CurrentAvatarImage.Source = new BitmapImage(new Uri($"pack://application:,,,/Assets/{asset}", UriKind.Absolute));
+        CurrentAvatarImage.Source = new BitmapImage(new Uri("pack://application:,,,/Assets/mgutu-logo.png", UriKind.Absolute));
     }
 
     private void ShowAdminOverview()

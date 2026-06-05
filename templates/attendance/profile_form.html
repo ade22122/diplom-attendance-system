@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль | Электронный журнал{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">{{ profile.get_role_display }}</p>
+        <h1>Профиль</h1>
+        <p>Личные данные и аватарка аккаунта.</p>
+    </div>
+    <a class="button" href="{% url 'dashboard' %}">На главную</a>
+</section>
+
+<section class="split-layout profile-settings">
+    <aside class="side-panel profile-card">
+        {% include "attendance/components/avatar.html" with profile=profile size="large" %}
+        <div>
+            <h2>{{ profile.display_name }}</h2>
+            <p>{{ request.user.username }}</p>
+        </div>
+    </aside>
+
+    <form method="post" enctype="multipart/form-data" class="form settings-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="message error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            <label>
+                {{ form.first_name.label }}
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors|striptags }}</span>{% endif %}
+            </label>
+            <label>
+                {{ form.last_name.label }}
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors|striptags }}</span>{% endif %}
+            </label>
+        </div>
+
+        <div class="form-grid">
+            <label>
+                {{ form.patronymic.label }}
+                {{ form.patronymic }}
+                {% if form.patronymic.errors %}<span class="field-error">{{ form.patronymic.errors|striptags }}</span>{% endif %}
+            </label>
+            <label>
+                {{ form.phone.label }}
+                {{ form.phone }}
+                {% if form.phone.errors %}<span class="field-error">{{ form.phone.errors|striptags }}</span>{% endif %}
+            </label>
+        </div>
+
+        <label>
+            {{ form.email.label }}
+            {{ form.email }}
+            {% if form.email.errors %}<span class="field-error">{{ form.email.errors|striptags }}</span>{% endif %}
+        </label>
+
+        <label>
+            {{ form.avatar.label }}
+            {{ form.avatar }}
+            {% if form.avatar.errors %}<span class="field-error">{{ form.avatar.errors|striptags }}</span>{% endif %}
+        </label>
+
+        {% if profile.avatar or profile.avatar_url %}
+            <label class="check-row">
+                {{ form.clear_avatar }}
+                <span>{{ form.clear_avatar.label }}</span>
+            </label>
+        {% endif %}
+
+        <button class="button primary" type="submit">Сохранить профиль</button>
+    </form>
+</section>
+{% endblock %}

@@ -26,10 +26,12 @@
 }
 
 .custom-admin-brand img {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
+    padding: 5px;
     border-radius: 8px;
     background: #fff;
+    object-fit: contain;
 }
 
 .custom-admin-brand h1 {

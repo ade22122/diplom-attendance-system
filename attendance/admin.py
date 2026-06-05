@@ -27,7 +27,7 @@ class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
     extra = 0
-    fields = ("role", "patronymic", "phone", "avatar_url")
+    fields = ("role", "patronymic", "phone", "avatar", "avatar_url")
     verbose_name = "Профиль и роль"
     verbose_name_plural = "Профиль и роль"
 
@@ -65,11 +65,16 @@ class ProfileAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Пользователь", {"fields": ("user", "role")}),
         ("Контакты", {"fields": ("patronymic", "phone")}),
-        ("Аватар", {"fields": ("avatar_url", "avatar_preview")}),
+        ("Аватар", {"fields": ("avatar", "avatar_url", "avatar_preview")}),
     )
 
     @admin.display(description="Аватар")
     def avatar_preview(self, obj):
+        if obj.avatar:
+            return format_html(
+                '<img src="{}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">',
+                obj.avatar.url,
+            )
         if obj.avatar_url:
             return format_html('<img src="{}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">', obj.avatar_url)
         return format_html(

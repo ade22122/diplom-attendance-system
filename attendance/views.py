@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import LessonForm, RoleUpdateForm, ScheduleEntryForm
+from .forms import LessonForm, ProfileEditForm, RegistrationForm, RoleUpdateForm, ScheduleEntryForm
 from .models import (
     AttendanceRecord,
     Course,
@@ -92,6 +93,39 @@ def build_schedule_calendar(entries):
             }
         )
     return rows
+
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        form = RegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Регистрация завершена. Добро пожаловать в электронный журнал.")
+            return redirect("dashboard")
+    else:
+        form = RegistrationForm()
+
+    return render(request, "registration/register.html", {"form": form})
+
+
+@login_required
+def profile_edit(request):
+    profile = get_profile(request.user)
+
+    if request.method == "POST":
+        form = ProfileEditForm(request.POST, request.FILES, user=request.user, profile=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Профиль обновлен.")
+            return redirect("profile_edit")
+    else:
+        form = ProfileEditForm(user=request.user, profile=profile)
+
+    return render(request, "attendance/profile_form.html", {"form": form, "profile": profile})
 
 
 @login_required

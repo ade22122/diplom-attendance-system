@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="MGUTU journal logo">
-  <rect width="160" height="160" rx="32" fill="#0f5f6b"/>
-  <path d="M42 38h76c8.8 0 16 7.2 16 16v56c0 8.8-7.2 16-16 16H42c-8.8 0-16-7.2-16-16V54c0-8.8 7.2-16 16-16Z" fill="#ffffff" opacity=".95"/>
-  <path d="M48 62h64M48 82h64M48 102h34" fill="none" stroke="#0f5f6b" stroke-width="10" stroke-linecap="round"/>
-  <circle cx="118" cy="103" r="18" fill="#c45a35"/>
-  <path d="M110 103l6 6 12-14" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

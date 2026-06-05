@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 venv/
 staticfiles/
+media/
 .pytest_cache/
 .coverage
 .idea/

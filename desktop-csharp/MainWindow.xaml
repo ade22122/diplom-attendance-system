@@ -344,8 +344,10 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <Border Width="54" Height="54" CornerRadius="8" Background="#FFFFFF" HorizontalAlignment="Left">
-                            <TextBlock Text="ИС" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="18" Foreground="#0F6F73"/>
+                        <Border Width="58" Height="58" CornerRadius="8" Background="#FFFFFF" HorizontalAlignment="Left" Padding="7">
+                            <Image Source="Assets/mgutu-logo.png"
+                                   Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
                         </Border>
                         <TextBlock Text="Информационная система учета посещаемости и успеваемости студентов"
                                    Foreground="White"
@@ -452,8 +454,10 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel>
-                        <Border Width="54" Height="54" CornerRadius="8" Background="White" HorizontalAlignment="Left">
-                            <TextBlock Text="ИС" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="18" Foreground="#0F6F73"/>
+                        <Border Width="58" Height="58" CornerRadius="8" Background="White" HorizontalAlignment="Left" Padding="7">
+                            <Image Source="Assets/mgutu-logo.png"
+                                   Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
                         </Border>
                         <TextBlock Text="МГУТУ журнал" Foreground="White" FontWeight="SemiBold" FontSize="22" Margin="0,18,0,4"/>
                         <TextBlock Text="ПК-клиент дипломного проекта" Foreground="#AFC2C1" FontSize="13"/>
@@ -465,8 +469,10 @@
                                 <ColumnDefinition Width="52"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Width="44" Height="44" CornerRadius="8" ClipToBounds="True" Background="#FFFFFF">
-                                <Image x:Name="CurrentAvatarImage" Stretch="UniformToFill"/>
+                            <Border Width="44" Height="44" CornerRadius="8" ClipToBounds="True" Background="#FFFFFF" Padding="5">
+                                <Image x:Name="CurrentAvatarImage"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
                             <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                 <TextBlock x:Name="CurrentUserText" Foreground="White" FontWeight="SemiBold" TextWrapping="Wrap"/>

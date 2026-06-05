@@ -63,9 +63,12 @@ a {
 }
 
 .brand img {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
+    padding: 5px;
     border-radius: 8px;
+    background: #fff;
+    object-fit: contain;
 }
 
 .brand span {
@@ -608,8 +611,10 @@ a {
 
 .auth-visual img {
     width: 100%;
+    aspect-ratio: 16 / 9;
     display: block;
     border-radius: 8px;
+    object-fit: cover;
     box-shadow: var(--shadow);
 }
 
@@ -627,7 +632,10 @@ a {
 .auth-brand img {
     width: 58px;
     height: 58px;
+    padding: 6px;
     border-radius: 8px;
+    background: #fff;
+    object-fit: contain;
 }
 
 .login-hint {
@@ -643,6 +651,20 @@ a {
 
 .login-hint strong {
     color: var(--text);
+}
+
+.auth-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.auth-switch a {
+    color: var(--blue);
+    font-weight: 800;
 }
 
 .form {
@@ -684,6 +706,25 @@ a {
     min-width: 110px;
 }
 
+.file-field {
+    padding: 8px;
+}
+
+.field-help,
+.field-error {
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.field-help {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.field-error {
+    color: var(--danger);
+}
+
 .check-row {
     display: flex !important;
     align-items: center;
@@ -707,6 +748,32 @@ a {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.profile-settings {
+    align-items: start;
+}
+
+.profile-card {
+    align-items: center;
+    text-align: center;
+}
+
+.profile-card h2 {
+    margin: 12px 0 2px;
+}
+
+.profile-card p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.settings-form {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
     box-shadow: var(--shadow);
 }
 
@@ -1252,8 +1319,10 @@ a {
 
 .hero-media img {
     width: min(100%, 440px);
+    aspect-ratio: 16 / 10;
     border: 6px solid rgba(255, 255, 255, 0.88);
     border-radius: 8px;
+    object-fit: cover;
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
 }
 

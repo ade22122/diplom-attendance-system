@@ -20,6 +20,7 @@ class Profile(models.Model):
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.STUDENT)
     patronymic = models.CharField("Отчество", max_length=150, blank=True)
     phone = models.CharField("Телефон", max_length=30, blank=True)
+    avatar = models.ImageField("Файл аватара", upload_to="avatars/", blank=True)
     avatar_url = models.URLField("Ссылка на аватар", blank=True)
 
     class Meta:
@@ -40,6 +41,12 @@ class Profile(models.Model):
         if letters:
             return "".join(letters[:2])
         return self.user.username[:2].upper()
+
+    @property
+    def avatar_src(self):
+        if self.avatar:
+            return self.avatar.url
+        return self.avatar_url
 
 
 class StudyGroup(models.Model):
