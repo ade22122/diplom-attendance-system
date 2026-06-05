@@ -79,11 +79,17 @@ class RegistrationForm(UserCreationForm):
     def clean_avatar(self):
         return validate_avatar_file(self.cleaned_data.get("avatar"))
 
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Пользователь с таким email уже зарегистрирован.")
+        return email
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data["first_name"].strip()
         user.last_name = self.cleaned_data["last_name"].strip()
-        user.email = self.cleaned_data["email"].strip()
+        user.email = self.cleaned_data["email"]
 
         if commit:
             user.save()
@@ -163,10 +169,16 @@ class ProfileEditForm(forms.Form):
     def clean_avatar(self):
         return validate_avatar_file(self.cleaned_data.get("avatar"))
 
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        if email and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError("Пользователь с таким email уже зарегистрирован.")
+        return email
+
     def save(self):
         self.user.first_name = self.cleaned_data["first_name"].strip()
         self.user.last_name = self.cleaned_data["last_name"].strip()
-        self.user.email = self.cleaned_data["email"].strip()
+        self.user.email = self.cleaned_data["email"]
         self.user.save(update_fields=["first_name", "last_name", "email"])
 
         self.profile.patronymic = self.cleaned_data["patronymic"].strip()
@@ -241,10 +253,51 @@ class ScheduleEntryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        course = cleaned_data.get("course")
+        weekday = cleaned_data.get("weekday")
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
+        week_type = cleaned_data.get("week_type")
+        is_active = cleaned_data.get("is_active")
         if start_time and end_time and end_time <= start_time:
             raise forms.ValidationError("Время окончания должно быть позже времени начала.")
+        if course and weekday and start_time and end_time and week_type and is_active:
+            if week_type == ScheduleEntry.WeekType.EVERY:
+                week_types = [
+                    ScheduleEntry.WeekType.EVERY,
+                    ScheduleEntry.WeekType.EVEN,
+                    ScheduleEntry.WeekType.ODD,
+                ]
+            else:
+                week_types = [ScheduleEntry.WeekType.EVERY, week_type]
+
+            conflicts = ScheduleEntry.objects.filter(
+                weekday=weekday,
+                week_type__in=week_types,
+                is_active=True,
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exclude(pk=self.instance.pk)
+
+            teacher_conflict = conflicts.filter(course__teacher=course.teacher).select_related(
+                "course__subject",
+                "course__group",
+            ).first()
+            if teacher_conflict:
+                raise forms.ValidationError(
+                    "У преподавателя уже есть пара в это время: "
+                    f"{teacher_conflict.course.subject.name}, {teacher_conflict.course.group.name}."
+                )
+
+            group_conflict = conflicts.filter(course__group=course.group).select_related(
+                "course__subject",
+                "course__teacher",
+            ).first()
+            if group_conflict:
+                raise forms.ValidationError(
+                    "У группы уже есть пара в это время: "
+                    f"{group_conflict.course.subject.name}."
+                )
         return cleaned_data
 
 

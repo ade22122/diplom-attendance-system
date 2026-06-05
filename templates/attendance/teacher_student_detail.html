@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student_card.user.get_full_name|default:student_card.user.username }} | {{ course.subject.name }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <div>
+        <p class="eyebrow">{{ course.group.name }} · {{ course.subject.name }}</p>
+        <h1>{{ student_card.user.get_full_name|default:student_card.user.username }}</h1>
+        <p>Персональная сводка преподавателя: посещаемость, успеваемость и история занятий.</p>
+    </div>
+    <div class="actions compact-head-actions">
+        <a class="button" href="{% url 'teacher_course_detail' course.id %}">К журналу</a>
+        <a class="button primary" href="{% url 'lesson_create' course.id %}">Добавить занятие</a>
+    </div>
+</section>
+
+<section class="profile-hero compact-hero">
+    {% include "attendance/components/avatar.html" with profile=student_card.user.profile size="large" %}
+    <div>
+        <p class="eyebrow">Студент</p>
+        <h2>{{ student_card.user.get_full_name|default:student_card.user.username }}</h2>
+        <p>{{ student_card.group.speciality }} · зачетная книжка № {{ student_card.record_book_number }}</p>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <div class="stat"><span>Посещаемость</span><strong>{{ attendance_percent }}%</strong></div>
+    <div class="stat"><span>Отмечено занятий</span><strong>{{ attendance_total }}</strong></div>
+    <div class="stat"><span>Оценки</span><strong>{{ grades_count }}</strong></div>
+    <div class="stat">
+        <span>Средний балл</span>
+        <strong>{% if average %}{{ average }}{% else %}—{% endif %}</strong>
+    </div>
+</section>
+
+<section class="split-layout wide-main">
+    <div>
+        <div class="section-title">
+            <h2>История по занятиям</h2>
+            <span>{{ course.academic_year }} · {{ course.semester }} семестр</span>
+        </div>
+        <div class="table-wrap">
+            <table class="journal-table">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Тема</th>
+                        <th>Посещаемость</th>
+                        <th>Оценки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td>
+                                <div class="date-chip small-chip">
+                                    <strong>{{ row.lesson.date|date:"d" }}</strong>
+                                    <span>{{ row.lesson.date|date:"M" }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{ row.lesson.topic }}</strong>
+                                <small>{{ row.lesson.get_lesson_type_display }}</small>
+                            </td>
+                            <td>
+                                {% if row.attendance %}
+                                    <span class="status-pill status-{{ row.attendance.status }}">{{ row.attendance.get_status_display }}</span>
+                                    {% if row.attendance.comment %}<small>{{ row.attendance.comment }}</small>{% endif %}
+                                {% else %}
+                                    <span class="muted">Не отмечено</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for grade in row.grades %}
+                                    <span class="grade-pill">{{ grade.get_value_display }}</span>
+                                {% empty %}
+                                    <span class="muted">Нет</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">Занятий пока нет.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <aside class="side-panel">
+        <h2>Итоги по дисциплине</h2>
+        <div class="compact-list">
+            <div class="compact-row">
+                <span>Преподаватель</span>
+                <small>{{ course.teacher.get_full_name|default:course.teacher.username }}</small>
+            </div>
+            <div class="compact-row">
+                <span>Группа</span>
+                <small>{{ course.group.name }}</small>
+            </div>
+            <div class="compact-row">
+                <span>Средний балл</span>
+                <strong>{% if average %}{{ average }}{% else %}—{% endif %}</strong>
+            </div>
+            {% for grade in final_grades %}
+                <div class="compact-row">
+                    <span>{{ grade.get_grade_type_display }}</span>
+                    <strong class="grade-pill">{{ grade.get_value_display }}</strong>
+                </div>
+            {% empty %}
+                <div class="compact-row">
+                    <span>Итоговая оценка</span>
+                    <small>Не выставлена</small>
+                </div>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+{% endblock %}

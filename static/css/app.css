@@ -592,6 +592,22 @@ a {
     display: grid;
 }
 
+.student-summary-row {
+    justify-content: space-between;
+}
+
+.student-summary-person {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.compact-head-actions {
+    justify-content: flex-end;
+    margin-top: 0;
+}
+
 .compact-row:last-child,
 .person-row:last-child {
     border-bottom: 0;
@@ -723,6 +739,18 @@ a {
 
 .field-error {
     color: var(--danger);
+}
+
+.field-ok {
+    color: var(--green);
+}
+
+.live-field-message:empty {
+    display: none;
+}
+
+[aria-invalid="true"] {
+    border-color: var(--danger);
 }
 
 .check-row {

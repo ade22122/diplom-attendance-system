@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from PIL import Image
-from .models import Course, Lesson, Profile, ScheduleEntry, StudentCard, StudyGroup, Subject
+from .models import AttendanceRecord, Course, Grade, Lesson, Profile, ScheduleEntry, StudentCard, StudyGroup, Subject
 
 
 def make_png():
@@ -114,6 +114,27 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, "Мои журналы")
         self.assertContains(response, "Базы данных")
 
+    def test_teacher_can_view_student_course_progress(self):
+        AttendanceRecord.objects.create(
+            lesson=self.lesson,
+            student=self.student_card,
+            status=AttendanceRecord.Status.PRESENT,
+        )
+        Grade.objects.create(
+            course=self.course,
+            lesson=self.lesson,
+            student=self.student_card,
+            value=Grade.GradeValue.FIVE,
+        )
+
+        self.client.login(username="teacher", password="password12345")
+        response = self.client.get(f"/teacher/courses/{self.course.id}/students/{self.student_card.id}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Персональная сводка преподавателя")
+        self.assertContains(response, "Посещаемость")
+        self.assertContains(response, "100%")
+
     def test_student_dashboard_renders(self):
         self.client.login(username="student", password="password12345")
         response = self.client.get("/")
@@ -130,6 +151,41 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Расписание группы ИС-21")
         self.assertContains(response, "304")
+
+    def test_admin_schedule_rejects_teacher_time_conflict(self):
+        group = StudyGroup.objects.create(
+            name="ИС-22",
+            speciality="Информационные системы",
+            admission_year=2023,
+        )
+        course = Course.objects.create(
+            subject=self.subject,
+            group=group,
+            teacher=self.teacher,
+            semester=5,
+            academic_year="2025/2026",
+        )
+
+        self.client.login(username="admin", password="password12345")
+        response = self.client.post(
+            "/admin-tools/schedule/",
+            {
+                "course": course.id,
+                "weekday": ScheduleEntry.Weekday.MONDAY,
+                "start_time": "09:15",
+                "end_time": "10:00",
+                "lesson_type": Lesson.LessonType.LECTURE,
+                "room": "405",
+                "building": "Главный корпус",
+                "week_type": ScheduleEntry.WeekType.EVERY,
+                "is_active": "on",
+                "comment": "",
+                "action": "save",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "У преподавателя уже есть пара")
 
     def test_record_book_renders_for_student(self):
         self.client.login(username="student", password="password12345")
@@ -202,6 +258,36 @@ class RegistrationAndProfileTests(TestCase):
         self.assertEqual(user.profile.role, Profile.Role.STUDENT)
         self.assertFalse(user.is_staff)
         self.assertTrue(StudentCard.objects.filter(user=user, group=self.group).exists())
+
+    def test_registration_rejects_duplicate_email(self):
+        User = get_user_model()
+        User.objects.create_user(username="existing", password="password12345", email="same@example.local")
+
+        response = self.client.post(
+            "/register/",
+            {
+                "username": "newstudent",
+                "first_name": "Павел",
+                "last_name": "Иванов",
+                "email": "same@example.local",
+                "group": self.group.id,
+                "password1": "StrongPass12345",
+                "password2": "StrongPass12345",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Пользователь с таким email уже зарегистрирован")
+        self.assertFalse(User.objects.filter(username="newstudent").exists())
+
+    def test_email_ajax_reports_duplicate(self):
+        User = get_user_model()
+        User.objects.create_user(username="existing", password="password12345", email="same@example.local")
+
+        response = self.client.get("/ajax/check-email/", {"email": "same@example.local"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["available"])
 
     def test_user_can_upload_avatar_in_profile(self):
         User = get_user_model()

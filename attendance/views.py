@@ -4,7 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -94,6 +94,62 @@ def build_schedule_calendar(entries):
             }
         )
     return rows
+
+
+def build_student_course_progress(course, student_card):
+    rows = []
+    for lesson in course.lessons.all():
+        rows.append(
+            {
+                "lesson": lesson,
+                "attendance": AttendanceRecord.objects.filter(lesson=lesson, student=student_card).first(),
+                "grades": Grade.objects.filter(course=course, lesson=lesson, student=student_card),
+            }
+        )
+
+    grades = Grade.objects.filter(course=course, student=student_card)
+    numeric_values = [int(grade.value) for grade in grades if grade.value.isdigit()]
+    average = round(sum(numeric_values) / len(numeric_values), 1) if numeric_values else None
+    final_grades = grades.filter(lesson__isnull=True)
+    attendance_total = AttendanceRecord.objects.filter(student=student_card, lesson__course=course).count()
+    attendance_positive = AttendanceRecord.objects.filter(
+        student=student_card,
+        lesson__course=course,
+        status__in=[
+            AttendanceRecord.Status.PRESENT,
+            AttendanceRecord.Status.LATE,
+            AttendanceRecord.Status.EXCUSED,
+        ],
+    ).count()
+    attendance_percent = round(attendance_positive * 100 / attendance_total) if attendance_total else 0
+
+    return {
+        "rows": rows,
+        "grades": grades,
+        "final_grades": final_grades,
+        "average": average,
+        "attendance_total": attendance_total,
+        "attendance_percent": attendance_percent,
+        "grades_count": grades.count(),
+    }
+
+
+def check_email_unique(request):
+    email = (request.GET.get("email") or "").strip()
+    if not email:
+        return JsonResponse({"available": True, "message": ""})
+
+    exists = get_user_model().objects.filter(email__iexact=email).exists()
+    return JsonResponse(
+        {
+            "available": not exists,
+            "message": (
+                "Email свободен."
+                if not exists
+                else "Этот email уже зарегистрирован. Укажите другой адрес."
+            ),
+        }
+    )
 
 
 def register(request):
@@ -292,6 +348,29 @@ def teacher_course_detail(request, course_id):
 
 
 @login_required
+def teacher_student_detail(request, course_id, student_id):
+    course = get_object_or_404(Course.objects.select_related("subject", "group", "teacher"), pk=course_id)
+    assert_teacher_or_admin_for_course(request.user, course)
+    student_card = get_object_or_404(
+        StudentCard.objects.select_related("group", "user", "user__profile"),
+        pk=student_id,
+        group=course.group,
+        is_active=True,
+    )
+    progress = build_student_course_progress(course, student_card)
+
+    return render(
+        request,
+        "attendance/teacher_student_detail.html",
+        {
+            "course": course,
+            "student_card": student_card,
+            **progress,
+        },
+    )
+
+
+@login_required
 def lesson_create(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     assert_teacher_or_admin_for_course(request.user, course)
@@ -396,29 +475,7 @@ def student_course_detail(request, course_id):
     if course.group_id != student_card.group_id:
         raise PermissionDenied("Нет доступа к данным другой группы.")
 
-    rows = []
-    for lesson in course.lessons.all():
-        rows.append(
-            {
-                "lesson": lesson,
-                "attendance": AttendanceRecord.objects.filter(lesson=lesson, student=student_card).first(),
-                "grades": Grade.objects.filter(course=course, lesson=lesson, student=student_card),
-            }
-        )
-
-    final_grades = Grade.objects.filter(course=course, student=student_card, lesson__isnull=True)
-    attendance_total = AttendanceRecord.objects.filter(student=student_card, lesson__course=course).count()
-    attendance_positive = AttendanceRecord.objects.filter(
-        student=student_card,
-        lesson__course=course,
-        status__in=[
-            AttendanceRecord.Status.PRESENT,
-            AttendanceRecord.Status.LATE,
-            AttendanceRecord.Status.EXCUSED,
-        ],
-    ).count()
-    attendance_percent = round(attendance_positive * 100 / attendance_total) if attendance_total else 0
-    grades_count = Grade.objects.filter(course=course, student=student_card).count()
+    progress = build_student_course_progress(course, student_card)
 
     return render(
         request,
@@ -426,11 +483,7 @@ def student_course_detail(request, course_id):
         {
             "course": course,
             "student_card": student_card,
-            "rows": rows,
-            "final_grades": final_grades,
-            "attendance_percent": attendance_percent,
-            "attendance_total": attendance_total,
-            "grades_count": grades_count,
+            **progress,
         },
     )
 

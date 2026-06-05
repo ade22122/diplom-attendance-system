@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="form">
+        <form method="post" enctype="multipart/form-data" class="form" data-registration-form data-email-check-url="{% url 'check_email_unique' %}">
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="message error">{{ form.non_field_errors }}</div>
@@ -46,6 +46,7 @@
             <label>
                 {{ form.email.label }}
                 {{ form.email }}
+                <span class="field-help live-field-message" data-email-availability aria-live="polite"></span>
                 {% if form.email.errors %}<span class="field-error">{{ form.email.errors|striptags }}</span>{% endif %}
             </label>
 
@@ -71,6 +72,7 @@
                 <label>
                     {{ form.password2.label }}
                     {{ form.password2 }}
+                    <span class="field-help live-field-message" data-password-match-error aria-live="polite"></span>
                     {% if form.password2.errors %}<span class="field-error">{{ form.password2.errors|striptags }}</span>{% endif %}
                 </label>
             </div>

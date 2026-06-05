@@ -5,11 +5,17 @@ from . import views
 
 urlpatterns = [
     path("register/", views.register, name="register"),
+    path("ajax/check-email/", views.check_email_unique, name="check_email_unique"),
     path("profile/", views.profile_edit, name="profile_edit"),
     path("profiles/<int:profile_id>/avatar/", views.profile_avatar, name="profile_avatar"),
     path("", views.dashboard, name="dashboard"),
     path("teacher/courses/", views.teacher_courses, name="teacher_courses"),
     path("teacher/courses/<int:course_id>/", views.teacher_course_detail, name="teacher_course_detail"),
+    path(
+        "teacher/courses/<int:course_id>/students/<int:student_id>/",
+        views.teacher_student_detail,
+        name="teacher_student_detail",
+    ),
     path(
         "teacher/courses/<int:course_id>/lessons/new/",
         views.lesson_create,

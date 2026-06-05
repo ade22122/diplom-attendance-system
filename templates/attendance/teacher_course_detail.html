@@ -47,12 +47,15 @@
         <h2>Студенты группы</h2>
         <div class="people-list">
             {% for student in students %}
-                <div class="person-row">
-                    {% include "attendance/components/avatar.html" with profile=student.user.profile size="small" %}
-                    <div>
-                        <strong>{{ student.user.get_full_name|default:student.user.username }}</strong>
-                        <small>Зачетная книжка: {{ student.record_book_number }}</small>
+                <div class="person-row student-summary-row">
+                    <div class="student-summary-person">
+                        {% include "attendance/components/avatar.html" with profile=student.user.profile size="small" %}
+                        <div>
+                            <strong>{{ student.user.get_full_name|default:student.user.username }}</strong>
+                            <small>Зачетная книжка: {{ student.record_book_number }}</small>
+                        </div>
                     </div>
+                    <a class="small-link" href="{% url 'teacher_student_detail' course.id student.id %}">Подробнее</a>
                 </div>
             {% empty %}
                 <p class="empty">В группе пока нет студентов.</p>
